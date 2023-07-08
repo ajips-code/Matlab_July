@@ -1,0 +1,15 @@
+Persiapkan Data: Kumpulkan dataset yang berisi contoh-contoh daun jambu beserta label kelasnya. Pastikan setiap contoh daun jambu direpresentasikan sebagai vektor fitur numerik. Misalnya, Anda dapat menggunakan fitur-fitur seperti panjang, lebar, bentuk, atau tekstur daun.
+
+Bagi Dataset: Bagi dataset Anda menjadi dua subset, yaitu dataset pelatihan (training set) dan dataset pengujian (test set). Biasanya, sekitar 70-80% dataset digunakan untuk pelatihan dan sisanya untuk pengujian.
+
+Normalisasi Data: Normalisasi data adalah proses untuk mengubah rentang nilai setiap fitur ke dalam rentang yang seragam. Ini penting agar fitur-fitur dengan rentang nilai yang berbeda memiliki pengaruh yang seimbang saat menghitung jarak antara titik-titik data.
+
+Tentukan Parameter K: Parameter K adalah jumlah tetangga terdekat yang akan digunakan dalam proses klasifikasi. Pemilihan parameter K dapat mempengaruhi hasil klasifikasi. Anda dapat mencoba beberapa nilai K dan memilih yang memberikan hasil terbaik.
+
+Hitung Jarak: Hitung jarak antara setiap sampel di dataset pengujian dengan sampel-sampel di dataset pelatihan. Jarak Euclidean sering digunakan dalam KNN, tetapi Anda juga dapat menggunakan metrik jarak lainnya.
+
+Pilih Tetangga Terdekat: Pilih K tetangga terdekat dari sampel pengujian berdasarkan jarak yang telah dihitung.
+
+Hitung Mayoritas: Tentukan kategori mayoritas dari tetangga-tetangga terdekat. Misalnya, jika K = 5 dan 3 tetangga termasuk dalam kelas A dan 2 tetangga termasuk dalam kelas B, maka sampel pengujian akan diklasifikasikan sebagai kelas A.
+
+Evaluasi Klasifikasi: Gunakan dataset pengujian untuk mengevaluasi klasifikasi yang telah dilakukan. Anda dapat menggunakan metrik evaluasi seperti akurasi (persentase sampel yang diklasifikasikan dengan benar) untuk mengukur kinerja model.
