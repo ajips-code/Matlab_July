@@ -78,7 +78,7 @@ function btnLoadDataset_Callback(hObject, eventdata, handles)
 % Get the current working directory (project folder)
 clc; clear; close all;
 % Menentukan folder dataset
-datasetFolder = 'dataset';
+datasetFolder = 'testing';
 
 % Mengecek apakah folder dataset kosong atau tidak ada
 if isempty(datasetFolder) || ~isfolder(datasetFolder)
@@ -102,7 +102,7 @@ imageFiles2 = fullfile(datasetFolder, {fileNames2.name});
 imageFiles = [imageFiles1, imageFiles2];
 
 % Menginisialisasi database fitur
-ciri_database = zeros(numel(imageFiles), 14); % Ditingkatkan menjadi 11 untuk fitur tambahan
+ciri_database = zeros(numel(imageFiles), 14); % Ditingkatkan menjadi 14 untuk fitur tambahan
 index = 1;
 
 % Membuat waitbar untuk menampilkan progress
@@ -116,15 +116,34 @@ for i = 1:numel(imageFiles)
     % Membaca file gambar
     Img = imread(imageFiles{i});
     
-    % Pra-pemrosesan
+    % Pre-processing
+    
+    % Mendapatkan ukuran gambar asli
+    [height, width, ~] = size(Img);
+
+    % Menyesuaikan nilai bbox agar mencakup seluruh gambar
+    bbox = [1, 1, width, height];
+
+    % Melakukan cropping pada gambar dengan bbox yang disesuaikan
+    croppedImg = imcrop(Img, bbox);
+
+    % Menampilkan hasil gambar croppedImg
+    %     imshow(croppedImg);
+    %     title('Cropped Image');
+
+    
     % Menghilangkan noise dengan filter median atau filter gaussian
-    preprocessedImg = filterMedianOrGaussian(Img);
+    preprocessedImg = filterMedianOrGaussian(croppedImg);
     
     % Meningkatkan kontras dan kecerahan gambar
     enhancedImg = enhanceContrastAndBrightness(preprocessedImg);
+    %     imshow(enhancedImg);
+    %     title('Meningkatkan kontras dan kecerahan gambar');
     
     % Segmentasi daun dari latar belakang
     segmentedImg = leafSegmentation(enhancedImg);
+    %     imshow(segmentedImg);
+    %     title('Segmentasi daun dari latar belakang');
     
     % Ekstraksi fitur menggunakan metode yang telah ditentukan
     % Ekstraksi fitur HSV
@@ -156,11 +175,11 @@ for i = 1:numel(imageFiles)
 end
 
 % Menyimpan database fitur ke file Excel
-filename = 'ciri_database_dataset.xlsx';
+filename = 'ciri_database_dataset-test-record.xlsx';
 headers = {'Hue', 'Saturation', 'Value', 'Contrast', 'Correlation', 'Energy', 'Homogeneity', 'ShapeFeature1', 'ShapeFeature2', 'SizeFeature1', 'SizeFeature2', 'SizeFeature3', 'SizeFeature4', 'SizeFeature5'};
 xlswrite(filename, headers, 'Sheet1', 'A1');
 xlswrite(filename, ciri_database, 'Sheet1', 'A2');
-save ciri_database_dataset.mat ciri_database
+save ciri_database_dataset-test-record.mat ciri_database
 
 % Menampilkan pesan berhasil
 close(hWaitBar);
@@ -205,13 +224,40 @@ function preprocessedImg = filterMedianOrGaussian(Img)
 function enhancedImg = enhanceContrastAndBrightness(preprocessedImg)
     % Implementasi peningkatan kontras dan kecerahan di sini
     % EnhancedImg adalah gambar yang telah ditingkatkan kontras dan kecerahannya
-    enhancedImg = preprocessedImg;
+    % Menggunakan konstanta untuk menentukan tingkat peningkatan kontras dan kecerahan
+    contrastFactor = 1.5; % Faktor peningkatan kontras
+    brightnessFactor = 50; % Faktor peningkatan kecerahan
+    
+    % Mengalikan gambar dengan faktor kontras
+    enhancedImg = preprocessedImg * contrastFactor;
+    
+    % Menambahkan nilai kecerahan ke setiap piksel gambar
+    enhancedImg = enhancedImg + brightnessFactor;
+    
+    % Memastikan nilai piksel tidak melebihi batas maksimum (255)
+    enhancedImg(enhancedImg > 255) = 255;
+%     enhancedImg = preprocessedImg;
 
 % Fungsi untuk segmentasi daun dari latar belakang
 function segmentedImg = leafSegmentation(enhancedImg)
     % Implementasi segmentasi di sini
     % SegmentedImg adalah gambar daun hasil segmentasi
+    % Konversi gambar ke skala keabuan jika belum dalam bentuk tersebut
+    grayImg = rgb2gray(enhancedImg);
+
+    % Tentukan ambang batas menggunakan metode Otsu's thresholding
+    threshold = graythresh(grayImg);
+
+    % Segmentasi dengan thresholding
+    binaryImg = imbinarize(grayImg, threshold);
+
+    % Mendapatkan citra daun yang tersegmentasi
     segmentedImg = enhancedImg;
+    segmentedImg(repmat(~binaryImg, [1, 1, 3])) = 0; % Set latar belakang menjadi hitam
+
+    % Opsional: Lakukan operasi morfologi untuk memperbaiki hasil segmentasi jika diperlukan
+    segmentedImg = imopen(segmentedImg, strel('disk', 3)); % Contoh operasi morfologi
+%     segmentedImg = enhancedImg;
 
 % Fungsi untuk ekstraksi fitur HSV
 function hsvFeatures = extractHSVFeatures(segmentedImg)
@@ -295,7 +341,7 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % Baca data dari file Excel
-data = readtable('ciri_database_dataset.xlsx', 'ReadVariableNames', true, 'PreserveVariableNames', true);
+data = readtable('ciri_database_dataset-test-record.xlsx', 'ReadVariableNames', true, 'PreserveVariableNames', true);
 
 % Ubah data menjadi cell array
 ciri_database = table2cell(data);
@@ -319,10 +365,10 @@ end
 ciri_database_labeled = [ciri_database, label];
 
 % Simpan ciri_database_labeled ke dalam file Excel
-writetable(cell2table(ciri_database_labeled), 'ciri_database_testing.xlsx', 'WriteVariableNames', false);
+writetable(cell2table(ciri_database_labeled), 'ciri_database_dataset-test-record.xlsx', 'WriteVariableNames', false);
 headers = {'Hue', 'Saturation', 'Value', 'Contrast', 'Correlation', 'Energy', 'Homogeneity', 'ShapeFeature1', 'ShapeFeature2', 'SizeFeature1', 'SizeFeature2', 'SizeFeature3', 'SizeFeature4', 'SizeFeature5','Class'};
-xlswrite('ciri_database_dataset.xlsx', headers, 'Sheet1', 'A1');
-xlswrite('ciri_database_dataset.xlsx', ciri_database_labeled, 'Sheet1', 'A2');
+xlswrite('ciri_database_dataset-test-record.xlsx', headers, 'Sheet1', 'A1');
+xlswrite('ciri_database_dataset-test-record.xlsx', ciri_database_labeled, 'Sheet1', 'A2');
 
 % Split data menjadi data training dan data testing
 [trainData, testData, trainLabels, testLabels] = splitData(fitur, label, 0.7);
@@ -353,3 +399,5 @@ function [trainData, testData, trainLabels, testLabels] = splitData(data, labels
     testData = data(indices(numTrain+1:end), :);
     trainLabels = labels(indices(1:numTrain));
     testLabels = labels(indices(numTrain+1:end));
+    
+

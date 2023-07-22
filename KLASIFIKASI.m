@@ -86,7 +86,7 @@ varargout{1} = handles.output;
 
 % --- Executes on button press in pushbutton1.
 function pushbutton1_Callback(hObject, eventdata, handles)
-[filename,pathname] = uigetfile({'*.*';'*.bmp';'*.tif';'*.gif';'*.png'},'Pick a Disease Affected Leaf');
+[filename,pathname] = uigetfile({'*.*';'*.bmp';'*.jpg';'*.jpeg';'*.tif';'*.gif';'*.png'},'Pick a Image Testing Leaf');
 I = imread([pathname,filename]);
 %figure, I=imresize(I);
 I2=imresize(I, [300,400]);
@@ -111,6 +111,7 @@ I2 = handles.imgData1;
 cform = makecform('srgb2lab');
 % Apply the colorform
 lab_he = applycform(I2,cform);
+
 % Classify the colors in a*b* colorspace using K means clustering.
 % Since the image has 3 colors create 3 clusters.
 % Measure the distance using Euclidean Distance Metric.
@@ -269,6 +270,13 @@ if isfield(handles, 'data')
     % Display the predicted label
     set(handles.text22, 'String', char(y_pred(1)));
     msgbox(['Klasifikasi: ' char(y_pred(1)) ' '], 'status');
+    
+%     % Menghitung akurasi klasifikasi
+%     accuracy = sum(y_pred == handles.y) / numel(handles.y) * 100;
+% 
+%     % Menampilkan akurasi
+%     disp(['Akurasi klasifikasi: ' num2str(accuracy) '%']);
+
 else
     errordlg('Data not loaded.', 'Error');
 end
